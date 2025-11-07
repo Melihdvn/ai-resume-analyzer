@@ -1,0 +1,7 @@
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, Arial, sans-serif; line-height: 1.4; }
+.pdf-thumb { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; }
+/* Centered welcome layout */
+.center-wrap { min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.stack-wrap { padding: 24px; max-width: 1200px; margin: 0 auto; }
