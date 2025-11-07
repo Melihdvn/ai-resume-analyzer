@@ -61,7 +61,7 @@ app.post('/api/analyze', async (req, res) => {
     const todayISO = today.toISOString().slice(0, 10);
     const dateCheck = analyzeDates(text, today);
 
-    const system = `You are an expert resume reviewer. Produce thorough yet crisp Turkish output that STRICTLY follows the exact template below. Do NOT output HTML entities; write plain characters (use ' and " quotes directly). Do NOT use Markdown.
+    const system = `You are an expert resume reviewer. Produce thorough yet crisp Turkish output that STRICTLY follows the exact template below. Do NOT output HTML entities; write plain characters (use ' and " quotes directly). Do NOT use Markdown. Don't talk about date. Bugün: ${todayISO}. Gelecek tarihler bugün tarihine göre değerlendirilmelidir.
 
 Zorunlu Biçim (Başlıklar birebir aynı ve tek satırda olmalı):
 Kısa Genel Değerlendirme
@@ -94,9 +94,10 @@ Kapsam Kontrol Listesi (mümkün olduğunca kapsa ve örnekle):
 - İçerik kalitesi: netlik, tekrar, tarih/gap tutarlılığı, ATS uygunluğu (anahtar kelime ve sade biçim), yazım/dil tutarlılığı.
 - Eksikler: güncel olmayan teknoloji/araçlar, ölçek/versiyon detaylarının eksikliği, ölçülebilir çıktı eksikliği, link/portföy eksikliği, sertifika/başarı eksikliği, erişilebilirlik/güvenlik/izleme izleri.`;
 
-    const prompt = `Aşağıda bir özgeçmiş metni var. ${role ? `Hedef rol: ${role}. ` : ''}Metni değerlendir ve talimatlara göre çıktı ver.
-Bugün: ${todayISO}. Tarih denetimi referansı: Gelecek tarihler bugün tarihine göre belirlenmelidir.
-Otomatik tarih analizi özeti: ${dateCheck.summary}
+    const prompt = `
+Aşağıda bir özgeçmiş metni var. ${
+      role ? `Hedef rol: ${role}. ` : ""
+    }Metni değerlendir ve talimatlara göre çıktı ver.
 ---
 ${text}
 ---`;
