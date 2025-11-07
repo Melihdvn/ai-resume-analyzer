@@ -5,3 +5,14 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; line-height: 1.4; }
 /* Centered welcome layout */
 .center-wrap { min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .stack-wrap { padding: 24px; max-width: 1200px; margin: 0 auto; }
+/* Sticky header */
+.app-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.75); backdrop-filter: saturate(180%) blur(6px); border-bottom: 1px solid #0001; }
+[data-theme='dark'] .app-header { background: rgba(16,16,16,0.65); border-bottom-color: #fff1; }
+
+/* Card fill for equal height columns */
+.card-fill { height: 100%; display: flex; flex-direction: column; }
+.card-fill .ant-card-body { display: flex; flex-direction: column; }
+
+/* Icon chip for list icons (dark-friendly) */
+.icon-chip { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 999px; background: rgba(0,0,0,0.06); margin-right: 6px; }
+[data-theme='dark'] .icon-chip { background: rgba(255,255,255,0.12); }

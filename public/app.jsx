@@ -243,15 +243,50 @@ function AppShell() {
     onRemove: () => { setFile(null); setResult({ summary:'', pros:[], cons:[], adds:[] }); }
   };
 
+  const brandTheme = React.useMemo(() => ({
+    algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      colorPrimary: '#2563eb', // Brand primary (blue-600)
+      colorSuccess: '#16a34a',
+      colorWarning: '#f59e0b',
+      colorError: '#ef4444',
+      colorInfo: '#0ea5e9',
+      borderRadius: 8,
+      fontSize: 14
+    },
+    components: {
+      Button: { fontWeight: 600, controlHeight: 40 },
+      Card: { borderRadiusLG: 12 },
+      Tag: { borderRadiusSM: 6 },
+      Progress: { defaultColor: '#2563eb' }
+    }
+  }), [isDark]);
+
+  // reflect theme to data-theme for CSS dark-specific tweaks
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const resetApp = () => {
+    setFile(null);
+    setPreviews([]);
+    setExtract({ text: '', current: 0, total: 0, status: '' });
+    setRole('');
+    setLoading(false);
+    setResult({ summary: '', pros: [], cons: [], adds: [] });
+    setProvider('');
+    setHasRequested(false);
+    setError('');
+  };
+
   return (
-    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+    <ConfigProvider theme={brandTheme}>
       <AntApp>
         <Layout style={{ minHeight: '100vh' }}>
-          <Header style={{ background: 'transparent' }}>
+          <Header className="app-header">
             <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
               <Space>
-                <ThunderboltOutlined />
-                <Title level={4} style={{ margin: 0 }}>AI Resume Analyzer</Title>
+                <Title level={4} style={{ margin: 0, cursor: 'pointer' }} onClick={resetApp}>AI Resume Analyzer</Title>
               </Space>
               <Space>
                 <BulbOutlined />
@@ -263,7 +298,7 @@ function AppShell() {
             {!hasRequested ? (
               <div className="center-wrap">
                 <Col xs={24} md={16} lg={10}>
-                  <Card title={<Space><ThunderboltOutlined /><Text strong>AI Resume Analyzer</Text></Space>}>
+                  <Card title={<Space><Text strong>AI Resume Analyzer</Text></Space>}>
                     <Space direction="vertical" size="large" style={{ width: '100%' }}>
                       <Text type="secondary">CV’nizi yükleyin, güçlü ve gelişime açık yönleri analiz edelim.</Text>
                       <Upload.Dragger {...uploadProps} style={{ padding: 12 }}>
@@ -286,9 +321,9 @@ function AppShell() {
             ) : (
               <div className="stack-wrap">
                 {/* Yükleme kartı üstte kalsın */}
-                <Row gutter={[16,16]}>
+                <Row gutter={[16,16]} align="stretch">
                   <Col xs={24} lg={12}>
-                    <Card title="Yükleme" extra={<Text type="secondary">PDF veya .txt</Text>}>
+                    <Card title="Yükleme" extra={<Text type="secondary">PDF veya .txt</Text>} className="card-fill">
                       <Space direction="vertical" size="large" style={{ width: '100%' }}>
                         <Upload.Dragger {...uploadProps} style={{ padding: 12 }}>
                           <p className="ant-upload-drag-icon"><InboxOutlined /></p>
@@ -307,7 +342,7 @@ function AppShell() {
                     </Card>
                   </Col>
                   <Col xs={24} lg={12}>
-                    <Card title="PDF Önizleme" extra={<FilePdfOutlined />}>
+                    <Card title="PDF Önizleme" extra={<FilePdfOutlined />} className="card-fill">
                       {previews.length ? (
                         <Row gutter={[8,8]}>
                           {previews.map((src, i) => (
@@ -359,13 +394,13 @@ function AppShell() {
                       </Card>
                       <Row gutter={[12,12]}>
                         <Col xs={24} md={8}>
-                          <SectionCard title="Güçlü Yönler" items={result.pros} color="green" icon={<CheckCircleTwoTone twoToneColor="#52c41a"/>} />
+                          <SectionCard title="Güçlü Yönler" items={result.pros} color="green" icon={<span className="icon-chip"><CheckCircleTwoTone twoToneColor="#52c41a"/></span>} />
                         </Col>
                         <Col xs={24} md={8}>
-                          <SectionCard title="Gelişmeye Açık Alanlar" items={result.cons} color="red" icon={<CloseCircleTwoTone twoToneColor="#ff4d4f"/>} />
+                          <SectionCard title="Gelişmeye Açık Alanlar" items={result.cons} color="red" icon={<span className="icon-chip"><CloseCircleTwoTone twoToneColor="#ff4d4f"/></span>} />
                         </Col>
                         <Col xs={24} md={8}>
-                          <SectionCard title="Eklenebilecek Yönler" items={result.adds} color="blue" icon={<PlusCircleTwoTone twoToneColor="#1677ff"/>} />
+                          <SectionCard title="Eklenebilecek Yönler" items={result.adds} color="blue" icon={<span className="icon-chip"><PlusCircleTwoTone twoToneColor="#1677ff"/></span>} />
                         </Col>
                       </Row>
                     </Card>
