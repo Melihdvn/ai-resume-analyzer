@@ -117,6 +117,7 @@ function AppShell() {
   const [provider, setProvider] = useState('');
   const [hasRequested, setHasRequested] = useState(false);
   const resultRef = React.useRef(null);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -162,6 +163,79 @@ function AppShell() {
       setTimeout(() => { resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
     }
   }, [loading, hasRequested, result]);
+
+  // Export helpers
+  const buildMarkdown = (r) => {
+    const lines = [];
+    lines.push('# Analiz Raporu');
+    if (role) lines.push(`Hedef Rol: ${role}`);
+    lines.push('');
+    lines.push('## Kısa Genel Değerlendirme');
+    lines.push(r.summary || '—');
+    lines.push('');
+    lines.push('## Güçlü Yönler');
+    (r.pros || []).forEach(i => lines.push('- ' + stripBullet(i)));
+    lines.push('');
+    lines.push('## Gelişmeye Açık Alanlar');
+    (r.cons || []).forEach(i => lines.push('- ' + stripBullet(i)));
+    lines.push('');
+    lines.push('## Eklenebilecek Yönler');
+    (r.adds || []).forEach(i => lines.push('- ' + stripBullet(i)));
+    lines.push('');
+    lines.push(`Sağlayıcı: ${provider || '—'}`);
+    return lines.join('\n');
+  };
+
+  const buildHtml = (r) => {
+    const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    const li = (arr) => (arr||[]).map(i => `<li>${esc(stripBullet(i))}</li>`).join('');
+    return `<!doctype html><html lang="tr"><head><meta charset="utf-8"/><title>Analiz Raporu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+      body{font-family:system-ui,Arial,sans-serif;line-height:1.6;margin:0;padding:24px}
+      h1,h2{margin-top:1.2em}
+      .meta{opacity:.8}
+      ul{padding-left:1.2em}
+    </style></head><body>
+    <h1>Analiz Raporu</h1>
+    ${role ? `<div class="meta">Hedef Rol: ${esc(role)}</div>` : ''}
+    <h2>Kısa Genel Değerlendirme</h2>
+    <p>${esc(r.summary || '—')}</p>
+    <h2>Güçlü Yönler</h2>
+    <ul>${li(r.pros)}</ul>
+    <h2>Gelişmeye Açık Alanlar</h2>
+    <ul>${li(r.cons)}</ul>
+    <h2>Eklenebilecek Yönler</h2>
+    <ul>${li(r.adds)}</ul>
+    <p class="meta">Sağlayıcı: ${esc(provider || '—')}</p>
+    </body></html>`;
+  };
+
+  const downloadBlob = (content, filename, type) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const onCopyMarkdown = async () => {
+    try {
+      setExporting(true);
+      await navigator.clipboard.writeText(buildMarkdown(result));
+      message.success('Markdown panoya kopyalandı');
+    } catch { message.error('Kopyalama başarısız'); } finally { setExporting(false); }
+  };
+  const onDownloadMarkdown = () => downloadBlob(buildMarkdown(result), 'analiz.md', 'text/markdown;charset=utf-8');
+  const onDownloadHtml = () => downloadBlob(buildHtml(result), 'analiz.html', 'text/html;charset=utf-8');
+  const onPrintPdf = () => {
+    const html = buildHtml(result);
+    const w = window.open('', '_blank');
+    if (!w) return message.error('Pencere açılamadı');
+    w.document.open();
+    w.document.write(html + '<script>window.onload=function(){setTimeout(function(){window.print();},300)}<\/script>');
+    w.document.close();
+  };
 
   const uploadProps = {
     name: 'file', multiple: false, maxCount: 1, accept: '.pdf,.txt,.text', showUploadList: true,
@@ -262,7 +336,14 @@ function AppShell() {
                 {/* Sonuç bölümü en altta */}
                 {!loading && (result.summary || result.pros.length || result.cons.length || result.adds.length) && (
                   <div ref={resultRef} style={{ scrollMarginTop: 24 }}>
-                    <Card title="Analiz Sonucu" style={{ marginTop: 16 }}>
+                    <Card title="Analiz Sonucu" style={{ marginTop: 16 }} extra={
+                      <Space>
+                        <Button size="small" onClick={onCopyMarkdown} loading={exporting}>Kopyala (MD)</Button>
+                        <Button size="small" onClick={onDownloadMarkdown}>.md indir</Button>
+                        <Button size="small" onClick={onDownloadHtml}>.html indir</Button>
+                        <Button size="small" onClick={onPrintPdf}>PDF yazdır</Button>
+                      </Space>
+                    }>
                       {error && <Alert type="error" message={error} showIcon style={{ marginBottom: 12 }} />}
                       {provider === 'mock' && (
                         <Alert
@@ -294,7 +375,7 @@ function AppShell() {
             )}
           </Content>
           <Footer style={{ textAlign: 'center' }}>
-            <Text type="secondary">Tüm Hakları Saklıdır • Melih Divan • {new Date().getFullYear()}</Text>
+            <Text type="secondary">Melih Divan • {new Date().getFullYear()}</Text>
           </Footer>
         </Layout>
       </AntApp>
